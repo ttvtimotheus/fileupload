@@ -8,41 +8,24 @@ import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-interface FileData {
-  name: string;
-  type: string;
-  url: string;
-}
-
 export default function SharedFilePage() {
   const params = useParams();
-  const [fileData, setFileData] = useState<FileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const fileId = params.id as string;
+  const filename = params.filename as string;
+  const fileUrl = `/uploads/${filename}`;
   
+  // File type detection
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+  const isPdf = /\.pdf$/i.test(filename);
+  const fileType = isImage ? 'image' : isPdf ? 'pdf' : 'file';
+  
+  // Check if the file exists
   useEffect(() => {
-    // Reconstruct the file URL based on the ID
-    const filename = fileId;
-    const fileUrl = `/uploads/${filename}`;
-    
-    // For demo, we'll just check if the file exists by trying to fetch it
     fetch(fileUrl, { method: 'HEAD' })
       .then(response => {
-        if (response.ok) {
-          // Extract file type from URL
-          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl);
-          const isPdf = /\.pdf$/i.test(fileUrl);
-          
-          const type = isImage ? 'image' : isPdf ? 'pdf' : 'file';
-          
-          setFileData({
-            name: filename,
-            type: type,
-            url: fileUrl
-          });
-        } else {
+        if (!response.ok) {
           setError('File not found');
         }
       })
@@ -52,41 +35,39 @@ export default function SharedFilePage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [fileId]);
+  }, [fileUrl]);
   
   // Handle copy link to clipboard
   const handleCopyLink = () => {
-    const fullUrl = `${window.location.origin}/shared/${fileId}`;
+    const fullUrl = window.location.href;
     navigator.clipboard.writeText(fullUrl);
     toast.success('Link copied to clipboard');
   };
   
   // Render file preview based on type
   const renderFilePreview = () => {
-    if (!fileData) return null;
-    
-    if (fileData.type === 'image') {
+    if (fileType === 'image') {
       return (
         <div className="flex justify-center overflow-hidden rounded-md max-h-96">
           <img 
-            src={fileData.url} 
-            alt={fileData.name} 
+            src={fileUrl} 
+            alt={filename} 
             className="object-contain w-full h-full"
           />
         </div>
       );
-    } else if (fileData.type === 'pdf') {
+    } else if (fileType === 'pdf') {
       return (
         <div className="flex flex-col items-center justify-center p-8 bg-muted/20 rounded-md">
           <FileText size={64} className="text-primary mb-2" />
-          <p className="text-lg font-medium">{fileData.name}</p>
+          <p className="text-lg font-medium">{filename}</p>
         </div>
       );
     } else {
       return (
         <div className="flex flex-col items-center justify-center p-8 bg-muted/20 rounded-md">
           <FileIcon size={64} className="text-primary mb-2" />
-          <p className="text-lg font-medium">{fileData.name}</p>
+          <p className="text-lg font-medium">{filename}</p>
         </div>
       );
     }
@@ -145,7 +126,7 @@ export default function SharedFilePage() {
             Copy Link
           </Button>
           <Button asChild>
-            <a href={fileData?.url} download>
+            <a href={fileUrl} download>
               <Download size={16} className="mr-2" /> 
               Download
             </a>

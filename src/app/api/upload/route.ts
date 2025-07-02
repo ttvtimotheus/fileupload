@@ -93,7 +93,11 @@ export async function POST(request: NextRequest) {
     
     // Generate direct file URL and shareable URL
     const directFileUrl = `/uploads/${uniqueFilename}`;
+    
+    // Shareable URL now points to the [filename] route
     const shareableUrl = `${protocol}://${host}/shared/${uniqueFilename}`;
+    
+    // Full direct URL to the file
     const fullFileUrl = `${protocol}://${host}${directFileUrl}`;
       
     // Log details for debugging
