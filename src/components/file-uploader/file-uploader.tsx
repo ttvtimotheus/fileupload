@@ -26,6 +26,7 @@ export function FileUploader({
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
+  const [shareableUrls, setShareableUrls] = useState<Record<string, string>>({});
   
   // Generate preview URLs for image files
   useEffect(() => {
@@ -109,34 +110,49 @@ export function FileUploader({
               console.log('Upload successful for:', file.name, 'Response:', xhr.response);
               setCompleted(prev => ({ ...prev, [fileKey]: true }));
               
-              // Get the file URL from response
+              // Get URLs from response
               const response = xhr.response;
-              if (response && response.fileUrl) {
-                console.log('File URL received:', response.fileUrl);
-                setFileUrls(prev => ({
-                  ...prev,
-                  [fileKey]: response.fileUrl
-                }));
-                // Show success toast with link
-                toast("File uploaded successfully", {
-                  description: (
-                    <a 
-                      href={response.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      View file
-                    </a>
-                  ),
-                  action: {
-                    label: "Copy link",
-                    onClick: () => {
-                      navigator.clipboard.writeText(response.fileUrl);
-                      toast.success("Link copied to clipboard");
+              if (response) {
+                console.log('Upload response:', response);
+                
+                // Store direct file URL if available
+                if (response.fileUrl) {
+                  console.log('File URL received:', response.fileUrl);
+                  setFileUrls(prev => ({
+                    ...prev,
+                    [fileKey]: response.fileUrl
+                  }));
+                }
+                
+                // Store and use shareable URL if available
+                if (response.shareableUrl) {
+                  console.log('Shareable URL received:', response.shareableUrl);
+                  setShareableUrls(prev => ({
+                    ...prev,
+                    [fileKey]: response.shareableUrl
+                  }));
+                  
+                  // Show success toast with shareable link
+                  toast("File uploaded successfully", {
+                    description: (
+                      <a 
+                        href={response.shareableUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        View shared file
+                      </a>
+                    ),
+                    action: {
+                      label: "Copy link",
+                      onClick: () => {
+                        navigator.clipboard.writeText(response.shareableUrl);
+                        toast.success("Link copied to clipboard");
+                      }
                     }
-                  }
-                });
+                  });
+                }
               } else {
                 console.error('No file URL in response:', response);
               }
@@ -205,6 +221,7 @@ export function FileUploader({
               completed={completed}
               errors={errors}
               fileUrls={fileUrls}
+              shareableUrls={shareableUrls}
               className="mt-6"
             />
           )}

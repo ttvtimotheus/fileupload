@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileWithPreview } from './file-list';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { Check, FileIcon, Loader2 } from 'lucide-react';
 
 interface UploadProgressProps {
@@ -13,6 +14,7 @@ interface UploadProgressProps {
   completed: Record<string, boolean>;
   errors: Record<string, string>;
   fileUrls: Record<string, string>;
+  shareableUrls: Record<string, string>;
   className?: string;
 }
 
@@ -22,6 +24,7 @@ export function UploadProgress({
   completed,
   errors,
   fileUrls,
+  shareableUrls,
   className
 }: UploadProgressProps) {
   if (files.length === 0) return null;
@@ -62,17 +65,26 @@ export function UploadProgress({
                 <p className="mt-2 text-xs text-destructive">{error}</p>
               )}
               
-              {isCompleted && fileUrls[key] && (
+              {isCompleted && shareableUrls[key] && (
                 <div className="mt-2 text-xs">
                   <p className="text-muted-foreground mb-1">Shareable link:</p>
                   <a 
-                    href={fileUrls[key]} 
+                    href={shareableUrls[key]} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline break-all"
                   >
-                    {fileUrls[key]}
+                    {shareableUrls[key]}
                   </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareableUrls[key]);
+                      toast.success("Link copied to clipboard");
+                    }}
+                    className="ml-2 text-xs text-primary hover:underline"
+                  >
+                    Copy
+                  </button>
                 </div>
               )}
             </CardContent>

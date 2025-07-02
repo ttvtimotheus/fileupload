@@ -91,24 +91,28 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') || 'localhost:3000';
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
     
-    // Generate the shareable URL - ensuring public prefix
-    const fileUrl = `${protocol}://${host}/uploads/${uniqueFilename}`;
+    // Generate direct file URL and shareable URL
+    const directFileUrl = `/uploads/${uniqueFilename}`;
+    const shareableUrl = `${protocol}://${host}/shared/${uniqueFilename}`;
+    const fullFileUrl = `${protocol}://${host}${directFileUrl}`;
       
     // Log details for debugging
     console.log('File uploaded successfully:', {
       fileName: originalName,
       uniqueFilename,
-      fileUrl
+      fullFileUrl,
+      shareableUrl
     });
     
-    // Return success response with shareable URL
+    // Return success response with URLs
     return NextResponse.json({
       success: true,
       message: 'File uploaded successfully',
       fileName: originalName,
       fileSize: file.size,
       fileType: file.type,
-      fileUrl: fileUrl,
+      fileUrl: fullFileUrl,     // Full direct URL to file
+      shareableUrl: shareableUrl, // URL to sharing page
       uniqueFilename: uniqueFilename
     });
   } catch (error) {
