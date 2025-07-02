@@ -214,7 +214,8 @@ export function FileUploader({
             onRemove={handleRemoveFile}
           />
           
-          {isUploading && (
+          {/* Show progress during upload and completed results after */}
+          {(isUploading || Object.keys(completed).length > 0) && (
             <UploadProgress 
               files={files}
               progress={progress}
